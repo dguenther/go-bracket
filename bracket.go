@@ -19,6 +19,7 @@ type Bracket struct {
 
 // Player represents a participant in a tournament.
 type Player struct {
+	ID   string
 	Name string
 	Seed int
 	Rank int
@@ -50,6 +51,9 @@ func NewClient(challongeUser, challongeAPIKey string) *Client {
 func (c Client) FetchBracket(url string) *Bracket {
 	if isChallongeURL(url) {
 		return fetchChallongeBracket(c.challongeUser, c.challongeAPIKey, url)
+	}
+	if isSmashGGURL(url) {
+		return fetchSmashGGBracket(url)
 	}
 	return nil
 }

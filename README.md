@@ -18,3 +18,7 @@ Instantiate the client with API keys:
 Then pass a web URL into the fetch function:
 
 `b := client.FetchBracket("http://challonge.com/xyfuz5c3")`
+
+or
+
+`b := client.FetchBracket("https://smash.gg/tournament/super-smash-sundays-48/brackets/14221/50133/165583")`

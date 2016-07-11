@@ -113,6 +113,7 @@ func convertChallongePlayers(data []*challongeParticipantWrap) []*Player {
 	players := make([]*Player, len(data))
 	for i, d := range data {
 		players[i] = &Player{
+			ID:   strconv.Itoa(d.Participant.ID),
 			Name: d.Participant.DisplayName,
 			Seed: d.Participant.Seed,
 			Rank: d.Participant.FinalRank,
@@ -162,6 +163,7 @@ func convertChallongeData(data *challongeAPIResponse) *Bracket {
 }
 
 func fetchChallongeBracket(user, apiKey, url string) *Bracket {
-	resp := fetchChallongeData(user, apiKey, url)
+	apiURL := getChallongeAPIURL(url)
+	resp := fetchChallongeData(user, apiKey, apiURL)
 	return convertChallongeData(resp)
 }
