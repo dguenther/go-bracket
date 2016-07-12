@@ -1,0 +1,10 @@
+language: go
+
+before_script:
+  - go vet ./...
+
+script:
+  - go test -v ./...
+  - gofmt -d . >> gofmt.file
+  - cat gofmt.file
+  - test ! -s gofmt.file

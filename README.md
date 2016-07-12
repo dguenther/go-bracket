@@ -1,4 +1,4 @@
-go-bracket
+go-bracket [![Build Status](https://travis-ci.org/dguenther/go-bracket.svg?branch=master)](https://travis-ci.org/dguenther/go-bracket)
 ===========
 
 An API client for calling Challonge and Smash.GG and receiving uniform
