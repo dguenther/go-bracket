@@ -101,8 +101,12 @@ func fetchChallongeData(user, apiKey, apiURL string) *challongeAPIResponse {
 		log.Fatal(err)
 	}
 
+	return decodeChallongeData(body)
+}
+
+func decodeChallongeData(body []byte) *challongeAPIResponse {
 	var decoded challongeAPIResponse
-	err = json.Unmarshal(body, &decoded)
+	err := json.Unmarshal(body, &decoded)
 	if err != nil {
 		log.Fatal(err)
 	}
