@@ -8,79 +8,119 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const url = "http://challonge.com/xyfuz5c3"
-const hash = "xyfuz5c3"
-
-const orgURL = "http://smashchateau.challonge.com/melee_halloween"
-const orgHash = "smashchateau-melee_halloween"
-
 func TestIsChallongeUrl(t *testing.T) {
+	url := "http://challonge.com/xyfuz5c3"
 	assert.True(t, isChallongeURL(url))
 }
 
 func TestGetChallongeHash(t *testing.T) {
+	url := "http://challonge.com/xyfuz5c3"
+	hash := "xyfuz5c3"
 	assert.Equal(t, getChallongeHash(url), hash)
 }
 
 func TestGetChallongeOrgHash(t *testing.T) {
+	orgURL := "http://smashchateau.challonge.com/melee_halloween"
+	orgHash := "smashchateau-melee_halloween"
 	assert.Equal(t, getChallongeHash(orgURL), orgHash)
 }
 
-func TestFetchChallonge(t *testing.T) {
+func TestDecodeChallonge(t *testing.T) {
 	b, err := ioutil.ReadFile("testdata/challonge.json")
 	if err != nil {
 		t.Error(err)
 	}
 	resp := decodeChallongeData(b)
-	assert.Equal(t, resp.Tournament.ID, 2385234)
-	assert.Equal(t, resp.Tournament.Name, "Missouri River Arcadian - The Sequel: Smash4 Top 16")
-	assert.Equal(t, resp.Tournament.FullChallongeURL, "http://HSCSmashNE.challonge.com/MRA2_s4s_t16")
-	assert.Equal(t, resp.Tournament.State, "complete")
+	assert.Equal(t, 2385234, resp.Tournament.ID)
+	assert.Equal(t, "Missouri River Arcadian - The Sequel: Smash4 Top 16", resp.Tournament.Name)
+	assert.Equal(t, "http://HSCSmashNE.challonge.com/MRA2_s4s_t16", resp.Tournament.FullChallongeURL)
+	assert.Equal(t, "complete", resp.Tournament.State)
 	startedAt, _ := time.Parse(time.RFC3339, "2016-04-02T21:02:39.766-06:00")
-	assert.Equal(t, resp.Tournament.StartedAt, &startedAt)
+	assert.Equal(t, &startedAt, resp.Tournament.StartedAt)
 	completedAt, _ := time.Parse(time.RFC3339, "2016-04-03T00:00:43.525-06:00")
-	assert.Equal(t, resp.Tournament.CompletedAt, &completedAt)
+	assert.Equal(t, &completedAt, resp.Tournament.CompletedAt)
 	createdAt, _ := time.Parse(time.RFC3339, "2016-04-02T19:54:30.732-06:00")
-	assert.Equal(t, resp.Tournament.CreatedAt, &createdAt)
+	assert.Equal(t, &createdAt, resp.Tournament.CreatedAt)
 	updatedAt, _ := time.Parse(time.RFC3339, "2016-04-03T00:00:43.621-06:00")
-	assert.Equal(t, resp.Tournament.UpdatedAt, &updatedAt)
+	assert.Equal(t, &updatedAt, resp.Tournament.UpdatedAt)
 
 	// Participants
 	assert.Len(t, resp.Tournament.Participants, 2)
 	participant := resp.Tournament.Participants[0].Participant
-	assert.Equal(t, participant.ID, 38172466)
-	assert.Equal(t, participant.Name, "(P1W) DPS|Dr. Pizza")
-	assert.Equal(t, participant.Seed, 1)
-	assert.Equal(t, participant.DisplayName, "(P1W) DPS|Dr. Pizza")
-	assert.Equal(t, participant.FinalRank, 9)
+	assert.Equal(t, 38172466, participant.ID)
+	assert.Equal(t, "(P1W) DPS|Dr. Pizza", participant.Name)
+	assert.Equal(t, 1, participant.Seed)
+	assert.Equal(t, "(P1W) DPS|Dr. Pizza", participant.DisplayName)
+	assert.Equal(t, 9, participant.FinalRank)
 
 	participant = resp.Tournament.Participants[1].Participant
-	assert.Equal(t, participant.ID, 38172533)
-	assert.Equal(t, participant.Name, "(P1L) YCL|Hite")
-	assert.Equal(t, participant.Seed, 16)
-	assert.Equal(t, participant.DisplayName, "(P1L) YCL|Hite")
-	assert.Equal(t, participant.FinalRank, 13)
+	assert.Equal(t, 38172533, participant.ID)
+	assert.Equal(t, "(P1L) YCL|Hite", participant.Name)
+	assert.Equal(t, 16, participant.Seed)
+	assert.Equal(t, "(P1L) YCL|Hite", participant.DisplayName)
+	assert.Equal(t, 13, participant.FinalRank)
 
 	// Matches
 	assert.Len(t, resp.Tournament.Matches, 1)
 	match := resp.Tournament.Matches[0].Match
-	assert.Equal(t, match.ID, 58296521)
-	assert.Equal(t, match.State, "complete")
-	assert.Equal(t, match.Identifier, "A")
-	assert.Equal(t, match.Round, 1)
+	assert.Equal(t, 58296521, match.ID)
+	assert.Equal(t, "complete", match.State)
+	assert.Equal(t, "A", match.Identifier)
+	assert.Equal(t, 1, match.Round)
 	startedAt, _ = time.Parse(time.RFC3339, "2016-04-02T21:02:39.812-06:00")
-	assert.Equal(t, match.StartedAt, &startedAt)
+	assert.Equal(t, &startedAt, match.StartedAt)
 	completedAt, _ = time.Parse(time.RFC3339, "2016-04-02T21:02:49.417-06:00")
-	assert.Equal(t, match.CompletedAt, &completedAt)
+	assert.Equal(t, &completedAt, match.CompletedAt)
 	createdAt, _ = time.Parse(time.RFC3339, "2016-04-02T21:02:39.653-06:00")
-	assert.Equal(t, match.CreatedAt, &createdAt)
+	assert.Equal(t, &createdAt, match.CreatedAt)
 	updatedAt, _ = time.Parse(time.RFC3339, "2016-04-02T21:02:49.397-06:00")
-	assert.Equal(t, match.UpdatedAt, &updatedAt)
-	assert.Equal(t, match.Player1ID, 38172466)
-	assert.Equal(t, match.Player2ID, 38172533)
-	assert.Equal(t, match.Player1PrereqMatchID, 0)
-	assert.Equal(t, match.Player2PrereqMatchID, 0)
-	assert.Equal(t, match.LoserID, 38172533)
-	assert.Equal(t, match.WinnerID, 38172466)
-	assert.Equal(t, match.ScoresCsv, "0--1")
+	assert.Equal(t, &updatedAt, match.UpdatedAt)
+	assert.Equal(t, 38172466, match.Player1ID)
+	assert.Equal(t, 38172533, match.Player2ID)
+	assert.Equal(t, 0, match.Player1PrereqMatchID)
+	assert.Equal(t, 0, match.Player2PrereqMatchID)
+	assert.Equal(t, 38172533, match.LoserID)
+	assert.Equal(t, 38172466, match.WinnerID)
+	assert.Equal(t, "0--1", match.ScoresCsv)
+}
+
+func TestConvertChallongeData(t *testing.T) {
+	// Ideally would be creating an API response here rather than
+	// building it from a file
+	b, err := ioutil.ReadFile("testdata/challonge.json")
+	if err != nil {
+		t.Error(err)
+	}
+	resp := decodeChallongeData(b)
+	bracket := convertChallongeData(resp)
+
+	assert.Equal(t, "Missouri River Arcadian - The Sequel: Smash4 Top 16", bracket.Name)
+	assert.Equal(t, "http://HSCSmashNE.challonge.com/MRA2_s4s_t16", bracket.URL)
+	players := bracket.Players
+	assert.Len(t, players, 2)
+	player := players[0]
+	assert.Equal(t, "38172466", player.ID)
+	assert.Equal(t, "(P1W) DPS|Dr. Pizza", player.Name)
+	assert.Equal(t, 9, player.Rank)
+	assert.Equal(t, 1, player.Seed)
+	player = players[1]
+	assert.Equal(t, "38172533", player.ID)
+	assert.Equal(t, "(P1L) YCL|Hite", player.Name)
+	assert.Equal(t, 13, player.Rank)
+	assert.Equal(t, 16, player.Seed)
+	matches := bracket.Matches
+	assert.Len(t, matches, 1)
+	match := bracket.Matches[0]
+	updatedAt, _ := time.Parse(time.RFC3339, "2016-04-02T21:02:49.397-06:00")
+	assert.Equal(t, "58296521", match.ID)
+	assert.Equal(t, "A", match.Identifier)
+	assert.Equal(t, 1, match.Round)
+	assert.Equal(t, &updatedAt, match.UpdatedAt)
+	assert.Equal(t, "complete", match.State)
+	assert.Equal(t, "38172466", match.Player1ID)
+	assert.Equal(t, 0, match.Player1Score)
+	assert.Equal(t, "38172533", match.Player2ID)
+	assert.Equal(t, -1, match.Player2Score)
+	assert.Equal(t, "38172466", match.WinnerID)
+	assert.Equal(t, "38172533", match.LoserID)
 }

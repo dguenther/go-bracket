@@ -15,8 +15,16 @@ type smashGGAPIResponse struct {
 }
 
 type smashGGEntities struct {
-	Sets  []*smashGGSet  `json:"sets"`
-	Seeds []*smashGGSeed `json:"seeds"`
+	Groups *smashGGGroup  `json:"groups"`
+	Sets   []*smashGGSet  `json:"sets"`
+	Seeds  []*smashGGSeed `json:"seeds"`
+}
+
+type smashGGGroup struct {
+	ID      int `json:"id"`
+	PhaseID int `json:"phaseId"`
+	WaveID  int `json:"waveId"`
+	State   int `json:"state"`
 }
 
 type smashGGSet struct {
@@ -104,8 +112,12 @@ func fetchSmashGGData(apiURL string) *smashGGAPIResponse {
 		log.Fatal(err)
 	}
 
+	return decodeSmashGGData(body)
+}
+
+func decodeSmashGGData(body []byte) *smashGGAPIResponse {
 	var decoded smashGGAPIResponse
-	err = json.Unmarshal(body, &decoded)
+	err := json.Unmarshal(body, &decoded)
 	if err != nil {
 		log.Fatal(err)
 	}
