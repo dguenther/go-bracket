@@ -3,7 +3,6 @@ package bracket
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -98,30 +97,30 @@ func getSmashGGAPIURL(url string) string {
 	return "https://smash.gg/api/-/resource/gg_api./phase_group/" + phaseGroup + ";expand=%5B%22sets%22%2C%22seeds%22%2C%22standings%22%5D;mutations=%5B%22playerData%22%5D;reset=false"
 }
 
-func fetchSmashGGData(apiURL string) *smashGGAPIResponse {
+func fetchSmashGGData(apiURL string) (*smashGGAPIResponse, error) {
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return decodeSmashGGData(body)
 }
 
-func decodeSmashGGData(body []byte) *smashGGAPIResponse {
+func decodeSmashGGData(body []byte) (*smashGGAPIResponse, error) {
 	var decoded smashGGAPIResponse
 	err := json.Unmarshal(body, &decoded)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &decoded
+	return &decoded, nil
 }
 
 func convertSmashGGState(set *smashGGSet) string {
@@ -195,11 +194,14 @@ func convertSmashGGData(resp *smashGGAPIResponse) *Bracket {
 	}
 }
 
-func fetchSmashGGBracket(url string) *Bracket {
+func fetchSmashGGBracket(url string) (*Bracket, error) {
 	apiURL := getSmashGGAPIURL(url)
-	resp := fetchSmashGGData(apiURL)
+	resp, err := fetchSmashGGData(apiURL)
+	if err != nil {
+		return nil, err
+	}
 
 	b := convertSmashGGData(resp)
 	b.URL = url
-	return b
+	return b, nil
 }

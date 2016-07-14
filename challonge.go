@@ -3,7 +3,6 @@ package bracket
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -86,31 +85,31 @@ func getChallongeAPIURL(url string) string {
 	return "https://api.challonge.com/v1/tournaments/" + hash + ".json?include_matches=1&include_participants=1"
 }
 
-func fetchChallongeData(user, apiKey, apiURL string) *challongeAPIResponse {
+func fetchChallongeData(user, apiKey, apiURL string) (*challongeAPIResponse, error) {
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	req.SetBasicAuth(user, apiKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return decodeChallongeData(body)
 }
 
-func decodeChallongeData(body []byte) *challongeAPIResponse {
+func decodeChallongeData(body []byte) (*challongeAPIResponse, error) {
 	var decoded challongeAPIResponse
 	err := json.Unmarshal(body, &decoded)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &decoded
+	return &decoded, nil
 }
 
 func convertChallongePlayers(data []*challongeParticipantWrap) []*Player {
@@ -166,8 +165,11 @@ func convertChallongeData(data *challongeAPIResponse) *Bracket {
 	}
 }
 
-func fetchChallongeBracket(user, apiKey, url string) *Bracket {
+func fetchChallongeBracket(user, apiKey, url string) (*Bracket, error) {
 	apiURL := getChallongeAPIURL(url)
-	resp := fetchChallongeData(user, apiKey, apiURL)
-	return convertChallongeData(resp)
+	resp, err := fetchChallongeData(user, apiKey, apiURL)
+	if err != nil {
+		return nil, err
+	}
+	return convertChallongeData(resp), err
 }

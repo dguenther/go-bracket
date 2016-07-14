@@ -48,12 +48,12 @@ func NewClient(challongeUser, challongeAPIKey string) *Client {
 
 // FetchBracket takes a URL, calls the appropriate web service for the URL,
 // and returns a bracket.
-func (c Client) FetchBracket(url string) *Bracket {
+func (c Client) FetchBracket(url string) (*Bracket, error) {
 	if isChallongeURL(url) {
 		return fetchChallongeBracket(c.challongeUser, c.challongeAPIKey, url)
 	}
 	if isSmashGGURL(url) {
 		return fetchSmashGGBracket(url)
 	}
-	return nil
+	return nil, nil
 }

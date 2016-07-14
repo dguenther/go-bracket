@@ -24,7 +24,10 @@ func TestDecodeSmashGGData(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	resp := decodeSmashGGData(b)
+	resp, err := decodeSmashGGData(b)
+	if err != nil {
+		t.Error(err)
+	}
 	e := resp.Entities
 	// Groups
 	g := e.Groups
@@ -173,7 +176,10 @@ func TestConvertSmashGGData(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	resp := decodeSmashGGData(b)
+	resp, err := decodeSmashGGData(b)
+	if err != nil {
+		t.Error(err)
+	}
 	bracket := convertSmashGGData(resp)
 
 	assert.Equal(t, "", bracket.Name)

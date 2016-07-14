@@ -30,7 +30,10 @@ func TestDecodeChallonge(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	resp := decodeChallongeData(b)
+	resp, err := decodeChallongeData(b)
+	if err != nil {
+		t.Error(err)
+	}
 	assert.Equal(t, 2385234, resp.Tournament.ID)
 	assert.Equal(t, "Missouri River Arcadian - The Sequel: Smash4 Top 16", resp.Tournament.Name)
 	assert.Equal(t, "http://HSCSmashNE.challonge.com/MRA2_s4s_t16", resp.Tournament.FullChallongeURL)
@@ -91,7 +94,10 @@ func TestConvertChallongeData(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	resp := decodeChallongeData(b)
+	resp, err := decodeChallongeData(b)
+	if err != nil {
+		t.Error(err)
+	}
 	bracket := convertChallongeData(resp)
 
 	assert.Equal(t, "Missouri River Arcadian - The Sequel: Smash4 Top 16", bracket.Name)
