@@ -158,10 +158,11 @@ func convertChallongeMatches(data []*challongeMatchWrap) []*Match {
 
 func convertChallongeData(data *challongeAPIResponse) *Bracket {
 	return &Bracket{
-		URL:     data.Tournament.FullChallongeURL,
-		Name:    data.Tournament.Name,
-		Players: convertChallongePlayers(data.Tournament.Participants),
-		Matches: convertChallongeMatches(data.Tournament.Matches),
+		URL:       data.Tournament.FullChallongeURL,
+		Name:      data.Tournament.Name,
+		UpdatedAt: data.Tournament.UpdatedAt,
+		Players:   convertChallongePlayers(data.Tournament.Participants),
+		Matches:   convertChallongeMatches(data.Tournament.Matches),
 	}
 }
 

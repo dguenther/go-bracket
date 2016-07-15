@@ -11,10 +11,11 @@ type Client struct {
 
 // Bracket represents a tournament bracket.
 type Bracket struct {
-	URL     string
-	Name    string
-	Players []*Player
-	Matches []*Match
+	URL       string
+	Name      string
+	UpdatedAt *time.Time
+	Players   []*Player
+	Matches   []*Match
 }
 
 // Player represents a participant in a tournament.

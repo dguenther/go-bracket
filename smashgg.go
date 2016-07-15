@@ -187,11 +187,24 @@ func convertSmashGGPlayers(resp *smashGGAPIResponse) []*Player {
 }
 
 func convertSmashGGData(resp *smashGGAPIResponse) *Bracket {
-	return &Bracket{
+	b := &Bracket{
 		Name:    "", // API does not return a tournament name
+		URL:     "", // API does not return a tournament URL
 		Matches: convertSmashGGMatches(resp),
 		Players: convertSmashGGPlayers(resp),
 	}
+
+	// API does not return updatedAt on tournament, so use
+	// the most recent updated match
+	updatedAt := time.Unix(0, 0)
+	for _, m := range b.Matches {
+		if m.UpdatedAt.After(updatedAt) {
+			updatedAt = *m.UpdatedAt
+		}
+	}
+	b.UpdatedAt = &updatedAt
+
+	return b
 }
 
 func fetchSmashGGBracket(url string) (*Bracket, error) {

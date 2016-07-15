@@ -184,6 +184,8 @@ func TestConvertSmashGGData(t *testing.T) {
 
 	assert.Equal(t, "", bracket.Name)
 	assert.Equal(t, "", bracket.URL)
+	updatedAt := time.Unix(1468187020, 0)
+	assert.Equal(t, &updatedAt, bracket.UpdatedAt)
 
 	// Players
 	players := bracket.Players
@@ -208,7 +210,7 @@ func TestConvertSmashGGData(t *testing.T) {
 	matches := bracket.Matches
 	assert.Len(t, matches, 2)
 	match := bracket.Matches[0]
-	updatedAt := time.Unix(1468185969, 0)
+	updatedAt = time.Unix(1468185969, 0)
 	assert.Equal(t, "4689059", match.ID)
 	assert.Equal(t, "A", match.Identifier)
 	assert.Equal(t, 1, match.Round)
