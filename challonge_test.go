@@ -80,8 +80,8 @@ func TestDecodeChallonge(t *testing.T) {
 	assert.Equal(t, &updatedAt, match.UpdatedAt)
 	assert.Equal(t, 38172466, match.Player1ID)
 	assert.Equal(t, 38172533, match.Player2ID)
-	assert.Equal(t, 0, match.Player1PrereqMatchID)
-	assert.Equal(t, 0, match.Player2PrereqMatchID)
+	assert.Nil(t, match.Player1PrereqMatchID)
+	assert.Nil(t, match.Player2PrereqMatchID)
 	assert.Equal(t, 38172533, match.LoserID)
 	assert.Equal(t, 38172466, match.WinnerID)
 	assert.Equal(t, "0--1", match.ScoresCsv)
@@ -102,6 +102,11 @@ func TestConvertChallongeData(t *testing.T) {
 
 	assert.Equal(t, "Missouri River Arcadian - The Sequel: Smash4 Top 16", bracket.Name)
 	assert.Equal(t, "http://HSCSmashNE.challonge.com/MRA2_s4s_t16", bracket.URL)
+	assert.Equal(t, "complete", bracket.State)
+	updatedAt, _ := time.Parse(time.RFC3339, "2016-04-03T00:00:43.621-06:00")
+	assert.Equal(t, &updatedAt, bracket.UpdatedAt)
+	startedAt, _ := time.Parse(time.RFC3339, "2016-04-02T21:02:39.766-06:00")
+	assert.Equal(t, &startedAt, bracket.StartedAt)
 	players := bracket.Players
 	assert.Len(t, players, 2)
 	player := players[0]
@@ -117,11 +122,13 @@ func TestConvertChallongeData(t *testing.T) {
 	matches := bracket.Matches
 	assert.Len(t, matches, 1)
 	match := bracket.Matches[0]
-	updatedAt, _ := time.Parse(time.RFC3339, "2016-04-02T21:02:49.397-06:00")
+	updatedAt, _ = time.Parse(time.RFC3339, "2016-04-02T21:02:49.397-06:00")
+	startedAt, _ = time.Parse(time.RFC3339, "2016-04-02T21:02:39.812-06:00")
 	assert.Equal(t, "58296521", match.ID)
 	assert.Equal(t, "A", match.Identifier)
 	assert.Equal(t, 1, match.Round)
 	assert.Equal(t, &updatedAt, match.UpdatedAt)
+	assert.Equal(t, &startedAt, match.StartedAt)
 	assert.Equal(t, "complete", match.State)
 	assert.Equal(t, "38172466", match.Player1ID)
 	assert.Equal(t, 0, match.Player1Score)

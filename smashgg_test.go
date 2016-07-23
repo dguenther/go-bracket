@@ -46,11 +46,11 @@ func TestDecodeSmashGGData(t *testing.T) {
 	assert.Equal(t, 1, set.Round)
 	assert.Equal(t, 3, set.State)
 	assert.Equal(t, 211768, set.Entrant1ID)
-	assert.Equal(t, 2426316, set.Entrant1PrereqID)
+	assert.Equal(t, 2426316, *set.Entrant1PrereqID)
 	assert.Equal(t, "seed", set.Entrant1PrereqType)
 	assert.Equal(t, 2, set.Entrant1Score)
 	assert.Equal(t, 212928, set.Entrant2ID)
-	assert.Equal(t, 2428388, set.Entrant2PrereqID)
+	assert.Equal(t, 2428388, *set.Entrant2PrereqID)
 	assert.Equal(t, "seed", set.Entrant2PrereqType)
 	assert.Equal(t, 0, set.Entrant2Score)
 	assert.Equal(t, 211768, set.WinnerID)
@@ -63,11 +63,11 @@ func TestDecodeSmashGGData(t *testing.T) {
 	assert.Equal(t, 2, set.Round)
 	assert.Equal(t, 3, set.State)
 	assert.Equal(t, 211768, set.Entrant1ID)
-	assert.Equal(t, 4689059, set.Entrant1PrereqID)
+	assert.Equal(t, 4689059, *set.Entrant1PrereqID)
 	assert.Equal(t, "set", set.Entrant1PrereqType)
 	assert.Equal(t, 2, set.Entrant1Score)
 	assert.Equal(t, 211974, set.Entrant2ID)
-	assert.Equal(t, 4689060, set.Entrant2PrereqID)
+	assert.Equal(t, 4689060, *set.Entrant2PrereqID)
 	assert.Equal(t, "set", set.Entrant2PrereqType)
 	assert.Equal(t, 0, set.Entrant2Score)
 	assert.Equal(t, 211768, set.WinnerID)
@@ -184,8 +184,10 @@ func TestConvertSmashGGData(t *testing.T) {
 
 	assert.Equal(t, "", bracket.Name)
 	assert.Equal(t, "", bracket.URL)
+	assert.Equal(t, "complete", bracket.State)
 	updatedAt := time.Unix(1468187020, 0)
 	assert.Equal(t, &updatedAt, bracket.UpdatedAt)
+	assert.Nil(t, bracket.StartedAt)
 
 	// Players
 	players := bracket.Players
@@ -228,11 +230,66 @@ func TestConvertSmashGGData(t *testing.T) {
 	assert.Equal(t, "I", match.Identifier)
 	assert.Equal(t, 2, match.Round)
 	assert.Equal(t, &updatedAt, match.UpdatedAt)
+	assert.Nil(t, match.StartedAt)
 	assert.Equal(t, "complete", match.State)
 	assert.Equal(t, "211768", match.Player1ID)
 	assert.Equal(t, 2, match.Player1Score)
+	assert.Equal(t, "4689059", *match.Player1PrereqMatchID)
 	assert.Equal(t, "211974", match.Player2ID)
 	assert.Equal(t, 0, match.Player2Score)
+	assert.Equal(t, "4689060", *match.Player2PrereqMatchID)
 	assert.Equal(t, "211768", match.WinnerID)
 	assert.Equal(t, "211974", match.LoserID)
+}
+
+func TestSmashGGFilterMatches(t *testing.T) {
+	// Test that we filter out all the unnecessary smash.gg matches
+	b, err := ioutil.ReadFile("testdata/smashgg_58playerbracket.json")
+	if err != nil {
+		t.Error(err)
+	}
+	resp, err := decodeSmashGGData(b)
+	if err != nil {
+		t.Error(err)
+	}
+	bracket := convertSmashGGData(resp)
+
+	assert.Len(t, bracket.Players, 58)
+	// number of matches in a double elim tournament: (n-1) * 2 + 1
+	assert.Len(t, bracket.Matches, 115)
+}
+
+func TestSmashGGStartedAt(t *testing.T) {
+	firstTime := int64(1)
+	secondTime := int64(2)
+	sets := []*smashGGSet{
+		&smashGGSet{StartedAt: &firstTime},
+		&smashGGSet{StartedAt: &secondTime},
+	}
+	resp := smashGGAPIResponse{
+		Entities: &smashGGEntities{
+			Sets: sets,
+		},
+	}
+	bracket := convertSmashGGData(&resp)
+	assert.Equal(t, time.Unix(firstTime, 0), *bracket.StartedAt)
+}
+
+func TestSmashGGPrereqID(t *testing.T) {
+	first := 1
+	second := 2
+	sets := []*smashGGSet{
+		&smashGGSet{Entrant1PrereqID: &first, Entrant2PrereqID: nil},
+		&smashGGSet{Entrant1PrereqID: nil, Entrant2PrereqID: &second},
+	}
+	resp := smashGGAPIResponse{
+		Entities: &smashGGEntities{
+			Sets: sets,
+		},
+	}
+	bracket := convertSmashGGData(&resp)
+	assert.EqualValues(t, *bracket.Matches[0].Player1PrereqMatchID, "1")
+	assert.Nil(t, bracket.Matches[0].Player2PrereqMatchID)
+	assert.Nil(t, bracket.Matches[1].Player1PrereqMatchID)
+	assert.EqualValues(t, *bracket.Matches[1].Player2PrereqMatchID, "2")
 }
