@@ -3,7 +3,6 @@ package bracket
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,8 +54,8 @@ type challongeMatch struct {
 	State                string     `json:"state"`
 	Player1ID            int        `json:"player1_id"`
 	Player2ID            int        `json:"player2_id"`
-	Player1PrereqMatchID int        `json:"player1_prereq_match_id"`
-	Player2PrereqMatchID int        `json:"player2_prereq_match_id"`
+	Player1PrereqMatchID *int       `json:"player1_prereq_match_id"`
+	Player2PrereqMatchID *int       `json:"player2_prereq_match_id"`
 	WinnerID             int        `json:"winner_id"`
 	LoserID              int        `json:"loser_id"`
 	ScoresCsv            string     `json:"scores_csv"`
@@ -86,31 +85,31 @@ func getChallongeAPIURL(url string) string {
 	return "https://api.challonge.com/v1/tournaments/" + hash + ".json?include_matches=1&include_participants=1"
 }
 
-func fetchChallongeData(user, apiKey, apiURL string) *challongeAPIResponse {
+func fetchChallongeData(user, apiKey, apiURL string) (*challongeAPIResponse, error) {
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	req.SetBasicAuth(user, apiKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return decodeChallongeData(body)
 }
 
-func decodeChallongeData(body []byte) *challongeAPIResponse {
+func decodeChallongeData(body []byte) (*challongeAPIResponse, error) {
 	var decoded challongeAPIResponse
 	err := json.Unmarshal(body, &decoded)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &decoded
+	return &decoded, nil
 }
 
 func convertChallongePlayers(data []*challongeParticipantWrap) []*Player {
@@ -140,18 +139,32 @@ func convertChallongeMatches(data []*challongeMatchWrap) []*Match {
 			p2score += p2setscore
 		}
 
+		var p1prereq *string
+		var p2prereq *string
+		if d.Match.Player1PrereqMatchID != nil {
+			p1prereq = new(string)
+			*p1prereq = strconv.Itoa(*d.Match.Player1PrereqMatchID)
+		}
+		if d.Match.Player2PrereqMatchID != nil {
+			p2prereq = new(string)
+			*p2prereq = strconv.Itoa(*d.Match.Player2PrereqMatchID)
+		}
+
 		matches[i] = &Match{
-			ID:           strconv.Itoa(d.Match.ID),
-			Identifier:   d.Match.Identifier,
-			UpdatedAt:    d.Match.UpdatedAt,
-			Round:        d.Match.Round,
-			State:        d.Match.State,
-			Player1ID:    strconv.Itoa(d.Match.Player1ID),
-			Player2ID:    strconv.Itoa(d.Match.Player2ID),
-			WinnerID:     strconv.Itoa(d.Match.WinnerID),
-			LoserID:      strconv.Itoa(d.Match.LoserID),
-			Player1Score: p1score,
-			Player2Score: p2score,
+			ID:                   strconv.Itoa(d.Match.ID),
+			Identifier:           d.Match.Identifier,
+			UpdatedAt:            d.Match.UpdatedAt,
+			StartedAt:            d.Match.StartedAt,
+			Round:                d.Match.Round,
+			State:                d.Match.State,
+			Player1ID:            strconv.Itoa(d.Match.Player1ID),
+			Player2ID:            strconv.Itoa(d.Match.Player2ID),
+			Player1PrereqMatchID: p1prereq,
+			Player2PrereqMatchID: p2prereq,
+			WinnerID:             strconv.Itoa(d.Match.WinnerID),
+			LoserID:              strconv.Itoa(d.Match.LoserID),
+			Player1Score:         p1score,
+			Player2Score:         p2score,
 		}
 	}
 	return matches
@@ -159,15 +172,21 @@ func convertChallongeMatches(data []*challongeMatchWrap) []*Match {
 
 func convertChallongeData(data *challongeAPIResponse) *Bracket {
 	return &Bracket{
-		URL:     data.Tournament.FullChallongeURL,
-		Name:    data.Tournament.Name,
-		Players: convertChallongePlayers(data.Tournament.Participants),
-		Matches: convertChallongeMatches(data.Tournament.Matches),
+		URL:       data.Tournament.FullChallongeURL,
+		Name:      data.Tournament.Name,
+		UpdatedAt: data.Tournament.UpdatedAt,
+		StartedAt: data.Tournament.StartedAt,
+		State:     data.Tournament.State,
+		Players:   convertChallongePlayers(data.Tournament.Participants),
+		Matches:   convertChallongeMatches(data.Tournament.Matches),
 	}
 }
 
-func fetchChallongeBracket(user, apiKey, url string) *Bracket {
+func fetchChallongeBracket(user, apiKey, url string) (*Bracket, error) {
 	apiURL := getChallongeAPIURL(url)
-	resp := fetchChallongeData(user, apiKey, apiURL)
-	return convertChallongeData(resp)
+	resp, err := fetchChallongeData(user, apiKey, apiURL)
+	if err != nil {
+		return nil, err
+	}
+	return convertChallongeData(resp), err
 }
